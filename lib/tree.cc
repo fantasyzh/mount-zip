@@ -31,11 +31,15 @@
 #include <vector>
 
 #include <termios.h>
+
+#if ENABLE_ICU
 #include <unicode/putil.h>
 #include <unicode/uclean.h>
 #include <unicode/ucnv.h>
 #include <unicode/ucsdet.h>
 #include <unicode/udata.h>
+#endif
+
 #include <unistd.h>
 #include <zip.h>
 
@@ -203,6 +207,7 @@ bool Tree::ReadPasswordFromStdIn() {
 
 namespace {
 
+#if ENABLE_ICU
 // Initializes and cleans up the ICU library.
 class IcuGuard {
  public:
@@ -326,6 +331,7 @@ std::string DetectEncoding(const std::string_view bytes) {
   // Not handled by ICU.
   return std::string();
 }
+#endif //ENABLE_ICU
 
 }  // namespace
 
@@ -398,8 +404,10 @@ void Tree::BuildTree() {
   std::string encoding;
   if (opts_.encoding)
     encoding = opts_.encoding;
+#if ENABLE_ICU
   if (encoding.empty() || encoding == "auto")
     encoding = DetectEncoding(all_names);
+#endif
   all_names.clear();
 
   // Prepare functor to convert filenames to UTF-8.
@@ -410,6 +418,7 @@ void Tree::BuildTree() {
 
   // But if the filename encoding is one of the encodings we want to convert
   // using ICU, prepare and use the ICU converter.
+#if ENABLE_ICU
   if (!encoding.empty() && encoding != "libzip") {
     try {
       if (encoding != "raw")
@@ -422,6 +431,7 @@ void Tree::BuildTree() {
       Log(LOG_ERR, e.what());
     }
   }
+#endif
 
   struct Hardlink {
     zip_int64_t id;

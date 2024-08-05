@@ -27,6 +27,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syslog.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -138,7 +139,7 @@ class CacheFileReader : public UnbufferedReader {
       case CacheStrategy::InMemory:
         // Create an in-memory anonymous file.
         {
-          ScopedFile file(memfd_create("cache", 0));
+          ScopedFile file(syscall(SYS_memfd_create, "cache", 0));
           if (!file.IsValid())
             ThrowSystemError("Cannot create cache file in memory");
 

@@ -20,11 +20,19 @@ prefix = /usr
 exec_prefix = $(prefix)
 bindir = $(exec_prefix)/bin
 PKG_CONFIG ?= pkg-config
-DEPS = fuse libzip icu-uc icu-i18n
+
+DEPS = fuse libzip
 LIBS += -Llib -lmountzip
-LIBS += $(shell $(PKG_CONFIG) --libs $(DEPS))
+
+ENABLE_ICU = 0
+ifeq ($(ENABLE_ICU), 1)
+DEPS += icu-uc icu-i18n
+CXXFLAGS += -DENABLE_ICU
+endif
+
+LIBS += $(shell $(PKG_CONFIG) --libs --static $(DEPS))
 CXXFLAGS += $(shell $(PKG_CONFIG) --cflags $(DEPS))
-CXXFLAGS += -Wall -Wextra -Wno-sign-compare -Wno-missing-field-initializers -pedantic -std=c++20
+CXXFLAGS += -Wall -Wextra -Wno-sign-compare -Wno-missing-field-initializers -pedantic -std=c++20 -D_FILE_OFFSET_BITS=64 -I /usr/local/include
 ifeq ($(DEBUG), 1)
 CXXFLAGS += -O0 -g
 else
